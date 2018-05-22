@@ -1,0 +1,37 @@
+
+1. Data organization
+
+    DATA_ROOT should be the folder storing "2017_02_27_ITS1/, ..., and EAF/"
+    -- DATA_ROOT/
+        -- features/    # storing all features
+            -- 201704141420.npy
+            -- 201704141420_sensors.npy
+            -- 201704141420_seg_sp.npy
+            -- ...
+        -- labels/      # storing all labels
+            -- 201704141420_goal.npy
+            -- 201704141420_stimuli.npy
+            -- ...
+        -- results/     # storing all results
+
+    ** TODO: Modify default ROOT and DATA_ROOT (line 20) in ./configs/base_config.py
+
+2. Train basic retrieval model
+
+    ** cd script/
+
+    If you want to use my implementation for loss function (slower, but consume less memory):
+    ** ./train_base_model.sh
+
+    If you want to use tensorflow implementation for triplet_loss:
+    ** ./train_base_tf.sh
+
+3. Evaluate a trained model
+
+    ** cd script/
+
+    Modify evaluate.sh:
+        1. select the feature used (default is resenet)
+        2. modify "model_path" to the absolute path of your checkpoint  (see examples in the script)
+
+    ** ./evaluate.sh
