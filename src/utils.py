@@ -112,24 +112,29 @@ def evaluate_simple(embeddings, labels, normalize=False, standardize=False, alph
     num_correct = []
     for i in range(N):
         if labels[i] > 0:    # only for foreground events
-            _, sorted_idx, ap = retrieve_one(embeddings[i], np.delete(embeddings,i,0),
-                                             labels[i], np.delete(labels,i))
+            # always remove query from database
+            query = embeddings[i]
+            database = np.delete(embeddings, i, 0)
+            query_label = labels[i]
+            database_labels = np.delete(labels, i)
+
+            _, sorted_idx, ap = retrieve_one(query, database, query_label, database_labels)
 
             if np.isnan(ap):
                 print ("WARNING: encountered an AP of NaN!")
                 print ("This may occur when the event only appears once.")
-                print ("The event label here is {}.".format(labels[i]))
+                print ("The event label here is {}.".format(query_label))
                 print ("Ignore this event and carry on.")
             else:
                 aps.append(ap)
-                lab.append(int(labels[i]))
+                lab.append(int(query_label))
 
                 # compute precision @ recall alpha (precisions are for all classes)
-                prec, _ = precision_at_recall(labels[sorted_idx], labels[i], alpha)
+                prec, conf = precision_at_recall(database_labels[sorted_idx], query_label, alpha)
                 precs.append(prec)
 
                 # compute recall @ 1
-                num_correct.append(recall_at_K(labels[sorted_idx], labels[i], 1))
+                num_correct.append(recall_at_K(database_labels[sorted_idx], query_label, 1))
 
     mAP = np.mean(aps)
     mPrec = np.mean(precs)
@@ -169,32 +174,35 @@ def evaluate(embeddings, labels, normalize=False, standardize=False, alpha=0.5):
     num_correct = [0,0,0,0,0,0]
     for i in range(N):
         if labels[i] > 0:    # only for foreground events
-            _, sorted_idx, ap = retrieve_one(embeddings[i], np.delete(embeddings,i,0),
-                                             labels[i], np.delete(labels,i))
+            # always remove query from database
+            query = embeddings[i]
+            database = np.delete(embeddings, i, 0)
+            query_label = labels[i]
+            database_labels = np.delete(labels, i)
+
+            _, sorted_idx, ap = retrieve_one(query, database, query_label, database_labels)
 
             if np.isnan(ap):
                 print ("WARNING: encountered an AP of NaN!")
                 print ("This may occur when the event only appears once.")
-                print ("The event label here is {}.".format(labels[i]))
+                print ("The event label here is {}.".format(query_label))
                 print ("Ignore this event and carry on.")
             else:
                 aps.append(ap)
-                lab.append(int(labels[i]))
+                lab.append(int(query_label))
 
                 # compute precision @ recall alpha (precisions are for all classes)
-                prec, conf = precision_at_recall(labels[sorted_idx], labels[i], alpha)
+                prec, conf = precision_at_recall(database_labels[sorted_idx], query_label, alpha)
                 precs.append(prec)
                 confs.append(conf)
 
                 # compute recall @ K
-                num_correct[0] += recall_at_K(labels[sorted_idx], labels[i], 1)
-#                num_correct[1] += recall_at_K(labels[sorted_idx], labels[i], 10)
-#                num_correct[2] += recall_at_K(labels[sorted_idx], labels[i], 100)
-                num_correct[1] += recall_at_K(labels[sorted_idx], labels[i], 2)
-                num_correct[2] += recall_at_K(labels[sorted_idx], labels[i], 4)
-                num_correct[3] += recall_at_K(labels[sorted_idx], labels[i], 8)
-                num_correct[4] += recall_at_K(labels[sorted_idx], labels[i], 16)
-                num_correct[5] += recall_at_K(labels[sorted_idx], labels[i], 32)
+                num_correct[0] += recall_at_K(database_labels[sorted_idx], query_label, 1)
+                num_correct[1] += recall_at_K(database_labels[sorted_idx], query_label, 2)
+                num_correct[2] += recall_at_K(database_labels[sorted_idx], query_label, 4)
+                num_correct[3] += recall_at_K(database_labels[sorted_idx], query_label, 8)
+                num_correct[4] += recall_at_K(database_labels[sorted_idx], query_label, 16)
+                num_correct[5] += recall_at_K(database_labels[sorted_idx], query_label, 32)
 
     mAP = np.mean(aps)
     mPrec = np.mean(precs)
